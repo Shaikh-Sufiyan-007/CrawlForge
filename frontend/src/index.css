@@ -1,0 +1,50 @@
+@import '@xyflow/react/dist/style.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Custom scrollbar for data tables and logs */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+
+/* React Flow styling overrides for sleek dark and light mode */
+.react-flow__handle {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+}
+.dark .react-flow__background {
+  background-color: #090d16 !important;
+}
+.react-flow__controls button {
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  fill: #475569;
+}
+.dark .react-flow__controls button {
+  background-color: #1e293b;
+  border-color: #334155;
+  fill: #94a3b8;
+}
+.dark .react-flow__controls button:hover {
+  background-color: #334155;
+}
