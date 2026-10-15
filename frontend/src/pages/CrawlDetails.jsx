@@ -51,7 +51,7 @@ export const CrawlDetails = () => {
           <span>Back to Dashboard</span>
         </button>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 self-start sm:self-auto">
           <button
             onClick={handleRerun}
             disabled={loading}
@@ -76,10 +76,10 @@ export const CrawlDetails = () => {
       <CrawlProgress />
 
       {/* Sub-Tabs Selector */}
-      <div className="flex items-center space-x-1 border-b border-slate-200 dark:border-slate-800">
+      <div className="flex items-center space-x-1 border-b border-slate-200 dark:border-slate-800 overflow-x-auto pb-px">
         <button
           onClick={() => setActiveSubTab('graph')}
-          className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-medium border-b-2 transition-colors ${
+          className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
             activeSubTab === 'graph'
               ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400 font-semibold'
               : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -94,7 +94,7 @@ export const CrawlDetails = () => {
 
         <button
           onClick={() => setActiveSubTab('pages')}
-          className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-medium border-b-2 transition-colors ${
+          className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
             activeSubTab === 'pages'
               ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400 font-semibold'
               : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -109,7 +109,7 @@ export const CrawlDetails = () => {
 
         <button
           onClick={() => setActiveSubTab('info')}
-          className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-medium border-b-2 transition-colors ${
+          className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
             activeSubTab === 'info'
               ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400 font-semibold'
               : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -123,7 +123,7 @@ export const CrawlDetails = () => {
       {/* Tab Panels */}
       {activeSubTab === 'graph' && (
         <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs text-slate-500">
+          <div className="flex flex-col xs:flex-row xs:items-center justify-between text-xs text-slate-500 gap-1">
             <span>
               {graphData?.nodes?.length || 0} nodes discovered • {graphData?.edges?.length || 0} link connections
             </span>
@@ -140,7 +140,7 @@ export const CrawlDetails = () => {
       )}
 
       {activeSubTab === 'info' && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+        <div className="bg-white dark:bg-slate-900 rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
           <h3 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider">
             Job Metadata
           </h3>
@@ -195,4 +195,3 @@ export const CrawlDetails = () => {
 };
 
 export default CrawlDetails;
-

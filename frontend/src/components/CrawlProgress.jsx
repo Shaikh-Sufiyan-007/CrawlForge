@@ -55,17 +55,17 @@ export const CrawlProgress = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100 dark:border-slate-800">
-        <div>
-          <div className="flex items-center space-x-2.5 mb-0.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
             <h3 className="font-semibold text-sm sm:text-base text-slate-900 dark:text-white">
               Crawl #{currentCrawl.id || currentCrawl.crawlId}
             </h3>
             {getStatusBadge()}
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate max-w-xl">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-mono break-all line-clamp-1 sm:line-clamp-none">
             {currentCrawl.startUrl}
           </p>
         </div>
@@ -73,7 +73,7 @@ export const CrawlProgress = () => {
         {isRunning && (
           <button
             onClick={stopCrawl}
-            className="inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-700 dark:text-rose-300 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-900/60 transition-colors self-start sm:self-auto"
+            className="w-full sm:w-auto inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-700 dark:text-rose-300 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-900/60 transition-colors flex-shrink-0"
           >
             <Square className="w-3 h-3 fill-current" />
             <span>Stop Crawl</span>
@@ -82,7 +82,7 @@ export const CrawlProgress = () => {
       </div>
 
       {/* Progress Bar */}
-      <div className="my-4">
+      <div className="my-3 sm:my-4">
         <div className="flex justify-between text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
           <span>Progress: {percentage}%</span>
           <span>{crawled} / {max} pages</span>
@@ -104,39 +104,39 @@ export const CrawlProgress = () => {
       </div>
 
       {/* Metric Counters */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-        <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
-          <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 pt-1">
+        <div className="p-2.5 sm:p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
+          <div className="text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">
             Crawled
           </div>
-          <div className="text-xl font-bold text-slate-900 dark:text-white">
+          <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
             {crawled}
           </div>
         </div>
 
-        <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
-          <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">
+        <div className="p-2.5 sm:p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
+          <div className="text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">
             Queued
           </div>
-          <div className="text-xl font-bold text-slate-900 dark:text-white">
+          <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
             {pending}
           </div>
         </div>
 
-        <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
-          <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">
-            Errors / Skipped
+        <div className="p-2.5 sm:p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
+          <div className="text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">
+            Errors / Skip
           </div>
-          <div className="text-xl font-bold text-slate-900 dark:text-white">
+          <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
             {failed}
           </div>
         </div>
 
-        <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
-          <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">
+        <div className="p-2.5 sm:p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
+          <div className="text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">
             Limit
           </div>
-          <div className="text-xl font-bold text-slate-900 dark:text-white">
+          <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
             {max}
           </div>
         </div>
@@ -144,10 +144,10 @@ export const CrawlProgress = () => {
 
       {/* Current URL indicator */}
       {isRunning && crawlProgress?.currentUrl && (
-        <div className="mt-3 p-2 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
+        <div className="mt-3 p-2 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400 overflow-hidden">
           <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0 text-emerald-600" />
           <span className="font-medium flex-shrink-0">Processing:</span>
-          <span className="font-mono truncate">{crawlProgress.currentUrl}</span>
+          <span className="font-mono truncate flex-1 min-w-0">{crawlProgress.currentUrl}</span>
         </div>
       )}
     </div>
@@ -155,4 +155,3 @@ export const CrawlProgress = () => {
 };
 
 export default CrawlProgress;
-

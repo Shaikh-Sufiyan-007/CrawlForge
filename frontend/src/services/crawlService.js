@@ -12,13 +12,41 @@ const api = axios.create({
   timeout: 15000,
 });
 
+// Request interceptor: attach auth token if available
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('crawlforge_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor: dispatch session expiration event on 401
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      window.dispatchEvent(
+        new CustomEvent('crawlforge:session-expired', {
+          detail: error.response?.data?.error || 'Your session has expired. Please log in again.',
+        })
+      );
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const crawlService = {
   // Check backend health/connectivity
   checkHealth: async () => {
     try {
-      await api.get('/crawls', { timeout: 3000 });
+      await api.get('/auth/status', { timeout: 3000 });
       return true;
-    } catch {
+    } catch (err) {
+      if (err.response) return true;
       return false;
     }
   },

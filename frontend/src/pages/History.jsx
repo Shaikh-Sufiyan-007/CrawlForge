@@ -92,26 +92,26 @@ export const History = () => {
             <HistoryIcon className="w-4 h-4 text-emerald-600" />
             <span>Crawl History</span>
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Log of previously completed and running web crawling tasks.
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <div className="relative flex-1 sm:w-64">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search by URL or status..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 pr-3 py-1.5 text-xs rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
 
           <button
             onClick={handleRefresh}
-            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition-colors shadow-2xs"
+            className="flex items-center justify-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition-colors shadow-2xs"
           >
             <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -122,14 +122,14 @@ export const History = () => {
       {/* History Table */}
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-left text-xs border-collapse min-w-[640px]">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold text-[11px]">
                 <th className="py-2.5 px-3 w-14 text-center">ID</th>
-                <th className="py-2.5 px-3 min-w-[260px]">Target URL</th>
+                <th className="py-2.5 px-3 min-w-[220px]">Target URL</th>
                 <th className="py-2.5 px-3 w-28 text-center">Status</th>
                 <th className="py-2.5 px-3 w-28 text-center">Pages Crawled</th>
-                <th className="py-2.5 px-3 min-w-[130px]">Started At</th>
+                <th className="py-2.5 px-3 min-w-[120px]">Started At</th>
                 <th className="py-2.5 px-3 w-28 text-center">Actions</th>
               </tr>
             </thead>
@@ -154,7 +154,7 @@ export const History = () => {
                     <td className="py-2.5 px-3">
                       <div
                         onClick={() => handleOpenDetails(item.id)}
-                        className="font-mono text-slate-900 dark:text-slate-100 font-medium truncate max-w-md cursor-pointer hover:text-emerald-600 transition-colors text-[11px]"
+                        className="font-mono text-slate-900 dark:text-slate-100 font-medium truncate max-w-[200px] sm:max-w-xs md:max-w-md cursor-pointer hover:text-emerald-600 transition-colors text-[11px]"
                       >
                         {item.startUrl}
                       </div>
@@ -202,4 +202,3 @@ export const History = () => {
 };
 
 export default History;
-

@@ -47,12 +47,12 @@ export const CrawlForm = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm">
       <div className="mb-4">
-        <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+        <h2 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white">
           Start a Web Crawl
         </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           Enter a website URL to crawl internal links, check HTTP response codes, and map site architecture.
         </p>
       </div>
@@ -60,13 +60,13 @@ export const CrawlForm = () => {
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-start space-x-2 text-rose-700 dark:text-rose-400 text-xs">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
+          <div className="flex-1 break-words">
             <span className="font-semibold">Notice: </span>
             {error}
           </div>
           <button
             onClick={() => setError(null)}
-            className="text-[11px] font-semibold hover:underline text-rose-800 dark:text-rose-300 ml-2"
+            className="text-[11px] font-semibold hover:underline text-rose-800 dark:text-rose-300 ml-2 flex-shrink-0"
           >
             Dismiss
           </button>
@@ -96,7 +96,6 @@ export const CrawlForm = () => {
             </div>
           </div>
 
-
           <div className="md:col-span-4">
             <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
               Max Page Limit
@@ -121,8 +120,8 @@ export const CrawlForm = () => {
 
         {/* Quick Sample Chips & Submit Button */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
-          <div className="flex items-center space-x-1.5 overflow-x-auto text-xs">
-            <span className="text-slate-400 font-medium whitespace-nowrap">Examples:</span>
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="text-slate-400 font-medium whitespace-nowrap text-[11px]">Examples:</span>
             {sampleUrls.map((sample) => (
               <button
                 key={sample.label}
@@ -139,7 +138,7 @@ export const CrawlForm = () => {
           <button
             type="submit"
             disabled={isCrawling || loading}
-            className="flex items-center justify-center space-x-1.5 px-5 py-2 rounded-lg font-medium text-xs text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center space-x-1.5 px-5 py-2 rounded-lg font-medium text-xs text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
           >
             {loading ? (
               <>

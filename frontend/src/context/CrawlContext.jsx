@@ -66,6 +66,10 @@ export const CrawlProvider = ({ children }) => {
       setHistory(crawls || []);
       setBackendStatus('connected');
     } catch (err) {
+      if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+        setBackendStatus('connected');
+        return;
+      }
       console.warn('Failed to load history, backend might be offline:', err);
       setBackendStatus('offline');
     }

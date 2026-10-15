@@ -106,10 +106,10 @@ export const PageTable = ({ pages = [] }) => {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
       {/* Table Toolbar */}
-      <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div className="flex flex-1 items-center space-x-2">
+      <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-2">
           {/* Search Box */}
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative flex-1 min-w-[200px] max-w-md">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -124,7 +124,7 @@ export const PageTable = ({ pages = [] }) => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-2 py-1.5 text-xs rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+            className="w-full sm:w-auto px-2.5 py-1.5 text-xs rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
           >
             <option value="ALL">All Statuses</option>
             <option value="200">200 OK</option>
@@ -135,38 +135,40 @@ export const PageTable = ({ pages = [] }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between sm:justify-end space-x-2 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
           <span className="text-xs text-slate-400 font-medium">
             {filteredPages.length} {filteredPages.length === 1 ? 'page' : 'pages'}
           </span>
-          <button
-            onClick={handleExportCsv}
-            disabled={pages.length === 0}
-            className="flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors disabled:opacity-40"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>CSV</span>
-          </button>
-          <button
-            onClick={handleExportJson}
-            disabled={pages.length === 0}
-            className="flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors disabled:opacity-40"
-          >
-            <FileText className="w-3.5 h-3.5" />
-            <span>JSON</span>
-          </button>
+          <div className="flex items-center space-x-1.5">
+            <button
+              onClick={handleExportCsv}
+              disabled={pages.length === 0}
+              className="flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors disabled:opacity-40"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>CSV</span>
+            </button>
+            <button
+              onClick={handleExportJson}
+              disabled={pages.length === 0}
+              className="flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors disabled:opacity-40"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>JSON</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Table Area */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs border-collapse">
+        <table className="w-full text-left text-xs border-collapse min-w-[640px]">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold text-[11px]">
               <th className="py-2.5 px-3 w-10 text-center">#</th>
-              <th className="py-2.5 px-3 min-w-[260px]">URL</th>
+              <th className="py-2.5 px-3 min-w-[220px]">URL</th>
               <th className="py-2.5 px-3 w-24 text-center">Status</th>
-              <th className="py-2.5 px-3 min-w-[180px]">Page Title</th>
+              <th className="py-2.5 px-3 min-w-[160px]">Page Title</th>
               <th className="py-2.5 px-3 w-16 text-center">Depth</th>
               <th className="py-2.5 px-3 w-16 text-center">Action</th>
             </tr>
@@ -195,7 +197,7 @@ export const PageTable = ({ pages = [] }) => {
                           href={page.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="hover:text-emerald-600 hover:underline truncate max-w-sm sm:max-w-md block text-[11px]"
+                          className="hover:text-emerald-600 hover:underline truncate max-w-[200px] sm:max-w-xs md:max-w-md block text-[11px]"
                         >
                           {page.url}
                         </a>
@@ -203,16 +205,16 @@ export const PageTable = ({ pages = [] }) => {
                           href={page.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex-shrink-0"
                         >
-                          <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                          <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
                     </td>
                     <td className="py-2 px-3 text-center">
                       {getStatusBadge(page.statusCode)}
                     </td>
-                    <td className="py-2 px-3 text-slate-800 dark:text-slate-200 truncate max-w-xs text-xs">
+                    <td className="py-2 px-3 text-slate-800 dark:text-slate-200 truncate max-w-[140px] sm:max-w-xs text-xs">
                       {page.title || <span className="text-slate-400 italic">No Title</span>}
                     </td>
                     <td className="py-2 px-3 text-center">
@@ -243,12 +245,12 @@ export const PageTable = ({ pages = [] }) => {
 
       {/* Pagination Footer */}
       {filteredPages.length > 0 && (
-        <div className="p-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
-          <div className="flex items-center space-x-2">
+        <div className="p-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
             <span>
               Showing {startIndex + 1} to {Math.min(startIndex + pageSize, filteredPages.length)} of {filteredPages.length} pages
             </span>
-            <div className="flex items-center space-x-1 ml-2">
+            <div className="flex items-center space-x-1">
               <span>Per page:</span>
               <select
                 value={pageSize}
@@ -271,7 +273,7 @@ export const PageTable = ({ pages = [] }) => {
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-2">
+            <span className="px-2 font-mono text-[11px]">
               Page {currentPage} of {totalPages}
             </span>
             <button
@@ -289,4 +291,3 @@ export const PageTable = ({ pages = [] }) => {
 };
 
 export default PageTable;
-
