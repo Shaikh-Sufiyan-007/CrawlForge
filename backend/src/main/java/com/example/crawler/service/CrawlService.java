@@ -7,9 +7,12 @@ import com.example.crawler.entity.Crawl;
 import com.example.crawler.repository.CrawlRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -25,21 +28,20 @@ public class CrawlService {
     private final StringRedisTemplate redisTemplate;
 
     public CrawlService(CrawlRepository crawlRepository,
-                        CrawlerService crawlerService,
-                        StringRedisTemplate redisTemplate) {
+            CrawlerService crawlerService,
+            StringRedisTemplate redisTemplate) {
         this.crawlRepository = crawlRepository;
         this.crawlerService = crawlerService;
         this.redisTemplate = redisTemplate;
     }
 
-    /**
-     * Creates a new crawl job and triggers background asynchronous crawling.
-     * Does NOT block the main HTTP request thread.
-     */
+    @Transactional
+    @CacheEvict(value = "crawls", allEntries = true)
     public CrawlResponse startCrawl(CrawlRequest request) {
         String normalizedUrl = CrawlerService.normalizeUrl(request.getUrl());
         if (normalizedUrl == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid URL format. Please provide an http or https URL.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Invalid URL format. Please provide an http or https URL.");
         }
 
         int maxPages = request.getMaxPages() != null && request.getMaxPages() > 0 ? request.getMaxPages() : 100;
@@ -54,18 +56,16 @@ public class CrawlService {
         return new CrawlResponse(crawl.getId(), "STARTED");
     }
 
-    /**
-     * Retrieves a single crawl by its ID.
-     */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "crawl_item", key = "#id")
     public CrawlResponse getCrawl(Long id) {
         Crawl crawl = crawlRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Crawl not found with id: " + id));
         return CrawlResponse.fromEntity(crawl);
     }
 
-    /**
-     * Retrieves all crawls ordered by creation date descending.
-     */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "crawls", key = "'all'")
     public List<CrawlResponse> getAllCrawls() {
         return crawlRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
@@ -73,9 +73,7 @@ public class CrawlService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Gets real-time crawl progress from Redis (falling back to database when completed).
-     */
+    @Transactional(readOnly = true)
     public CrawlProgressResponse getProgress(Long id) {
         Crawl crawl = crawlRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Crawl not found with id: " + id));
@@ -117,13 +115,11 @@ public class CrawlService {
                 pagesPending,
                 pagesFailed,
                 crawl.getMaxPages(),
-                currentUrl != null ? currentUrl : crawl.getStartUrl()
-        );
+                currentUrl != null ? currentUrl : crawl.getStartUrl());
     }
 
-    /**
-     * Signals the asynchronous crawler to stop crawling.
-     */
+    @Transactional
+    @CacheEvict(value = { "crawls", "crawl_item", "graph" }, allEntries = true)
     public CrawlResponse stopCrawl(Long id) {
         Crawl crawl = crawlRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Crawl not found with id: " + id));

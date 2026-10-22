@@ -1,6 +1,7 @@
 package com.example.crawler.repository;
 
 import com.example.crawler.entity.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +12,8 @@ import java.util.Optional;
 public interface PageRepository extends JpaRepository<Page, Long> {
 
     List<Page> findByCrawlIdOrderByCreatedAtAsc(Long crawlId);
+
+    org.springframework.data.domain.Page<Page> findByCrawlIdOrderByCreatedAtAsc(Long crawlId, Pageable pageable);
 
     Optional<Page> findByCrawlIdAndUrl(Long crawlId, String url);
 

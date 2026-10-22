@@ -5,7 +5,9 @@ import com.example.crawler.entity.Link;
 import com.example.crawler.entity.Page;
 import com.example.crawler.repository.LinkRepository;
 import com.example.crawler.repository.PageRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,9 +23,8 @@ public class GraphService {
         this.linkRepository = linkRepository;
     }
 
-    /**
-     * Builds site graph containing nodes (pages) and edges (links).
-     */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "graph", key = "#crawlId")
     public GraphResponse getGraph(Long crawlId) {
         List<Page> pages = pageRepository.findByCrawlIdOrderByCreatedAtAsc(crawlId);
         List<Link> links = linkRepository.findByCrawlId(crawlId);
@@ -56,14 +57,13 @@ public class GraphService {
             String targetUrl = link.getTargetUrl();
 
             // React Flow requires both source and target nodes to exist on the canvas.
-            // If the target is an internal link that was also crawled, connect them.
-            // If the target wasn't crawled yet or is external, we can add a ghost/leaf node so the edge renders cleanly.
             if (!existingNodeUrls.contains(targetUrl)) {
                 String label = targetUrl.replaceFirst("https?://[^/]+", "");
                 if (label.isBlank() || label.equals("/")) {
                     label = targetUrl;
                 }
-                nodes.add(new GraphResponse.NodeDto(targetUrl, label, 0, (sourcePage.getDepth() != null ? sourcePage.getDepth() + 1 : 1)));
+                nodes.add(new GraphResponse.NodeDto(targetUrl, label, 0,
+                        (sourcePage.getDepth() != null ? sourcePage.getDepth() + 1 : 1)));
                 existingNodeUrls.add(targetUrl);
             }
 

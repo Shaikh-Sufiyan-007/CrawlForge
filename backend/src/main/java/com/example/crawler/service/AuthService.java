@@ -5,7 +5,10 @@ import com.example.crawler.dto.LoginRequest;
 import com.example.crawler.dto.SignupRequest;
 import com.example.crawler.entity.User;
 import com.example.crawler.repository.UserRepository;
-import jakarta.annotation.PostConstruct;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -75,7 +78,8 @@ public class AuthService {
         this.redisTemplate = redisTemplate;
     }
 
-    @PostConstruct
+    @Async
+    @EventListener(ApplicationReadyEvent.class)
     public void initDefaultUser() {
         try {
             if (userRepository.count() == 0) {
@@ -94,6 +98,7 @@ public class AuthService {
     }
 
     
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         String identifier = request.getUsername().trim();
         String password = request.getPassword();
@@ -131,6 +136,7 @@ public class AuthService {
     }
 
 
+    @Transactional
     public AuthResponse signup(SignupRequest request) {
         String username = request.getUsername().trim();
         String email = request.getEmail().trim().toLowerCase();
@@ -196,6 +202,7 @@ public class AuthService {
     }
 
 
+    @Transactional(readOnly = true)
     public Optional<User> validateToken(String rawToken) {
         String token = extractToken(rawToken);
         if (token == null || token.isEmpty()) {

@@ -15,6 +15,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -34,13 +35,13 @@ public class CrawlerService {
             ".css", ".js", ".pdf", ".zip", ".tar", ".gz", ".rar", ".7z",
             ".mp4", ".webm", ".mp3", ".wav", ".ogg", ".avi", ".mov",
             ".woff", ".woff2", ".ttf", ".eot", ".otf",
-            ".xml", ".json", ".rss", ".atom", ".exe", ".bin", ".dmg"
-    );
+            ".xml", ".json", ".rss", ".atom", ".exe", ".bin", ".dmg");
 
     private final CrawlRepository crawlRepository;
     private final PageRepository pageRepository;
     private final LinkRepository linkRepository;
     private final StringRedisTemplate redisTemplate;
+    private final CacheManager cacheManager;
 
     @Value("${crawler.user-agent:CrawlForge/1.0 (+https://github.com/crawler)}")
     private String userAgent;
@@ -49,20 +50,17 @@ public class CrawlerService {
     private int timeoutMs;
 
     public CrawlerService(CrawlRepository crawlRepository,
-                          PageRepository pageRepository,
-                          LinkRepository linkRepository,
-                          StringRedisTemplate redisTemplate) {
+            PageRepository pageRepository,
+            LinkRepository linkRepository,
+            StringRedisTemplate redisTemplate,
+            CacheManager cacheManager) {
         this.crawlRepository = crawlRepository;
         this.pageRepository = pageRepository;
         this.linkRepository = linkRepository;
         this.redisTemplate = redisTemplate;
+        this.cacheManager = cacheManager;
     }
 
-    /**
-     * Executes the web crawl asynchronously on a background thread pool.
-     * Interacts with Redis for queue, visited set, and live progress,
-     * and persists permanent data to PostgreSQL.
-     */
     @Async("crawlerTaskExecutor")
     public void executeCrawl(Long crawlId, String startUrl, int maxPages) {
         log.info("Starting asynchronous crawl [{}] for URL: {} (maxPages: {})", crawlId, startUrl, maxPages);
@@ -131,7 +129,8 @@ public class CrawlerService {
                 redisTemplate.opsForValue().set(currentUrlKey, currentUrl);
 
                 // Process page
-                PageProcessResult result = processPage(crawlId, currentUrl, currentDepth, targetDomain, queueKey, visitedKey, maxPages);
+                PageProcessResult result = processPage(crawlId, currentUrl, currentDepth, targetDomain, queueKey,
+                        visitedKey, maxPages);
                 if (result.isSuccess()) {
                     pagesCrawled++;
                     redisTemplate.opsForValue().increment(crawledKey);
@@ -168,7 +167,7 @@ public class CrawlerService {
     }
 
     private PageProcessResult processPage(Long crawlId, String currentUrl, int depth, String targetDomain,
-                                          String queueKey, String visitedKey, int maxPages) {
+            String queueKey, String visitedKey, int maxPages) {
         int statusCode = 200;
         String title = "";
         Document doc = null;
@@ -267,6 +266,23 @@ public class CrawlerService {
         crawlRepository.save(crawl);
 
         redisTemplate.opsForValue().set(stateKey, status);
+
+        // Evict caches so clients see updated metadata and fresh site graph
+        try {
+            if (cacheManager != null) {
+                if (cacheManager.getCache("crawls") != null) {
+                    cacheManager.getCache("crawls").clear();
+                }
+                if (cacheManager.getCache("crawl_item") != null) {
+                    cacheManager.getCache("crawl_item").evict(crawl.getId());
+                }
+                if (cacheManager.getCache("graph") != null) {
+                    cacheManager.getCache("graph").evict(crawl.getId());
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Could not evict cache after crawl completion: {}", e.getMessage());
+        }
     }
 
     private void setKeysTtl(String... keys) {
@@ -362,7 +378,8 @@ public class CrawlerService {
     }
 
     private static String truncate(String text, int maxLength) {
-        if (text == null) return null;
+        if (text == null)
+            return null;
         return text.length() <= maxLength ? text : text.substring(0, maxLength);
     }
 
