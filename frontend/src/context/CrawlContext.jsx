@@ -4,17 +4,15 @@ import crawlService from '../services/crawlService';
 const CrawlContext = createContext();
 
 export const CrawlProvider = ({ children }) => {
-
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('crawlforge_theme');
     if (saved) return saved;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
 
-
   const [backendStatus, setBackendStatus] = useState('checking');
+  const [wakingMeta, setWakingMeta] = useState({ attempt: 1, maxRetries: 3 });
 
-  // Current crawl state
   const [currentCrawl, setCurrentCrawl] = useState(null);
   const [crawlStatus, setCrawlStatus] = useState('IDLE');
   const [crawlProgress, setCrawlProgress] = useState({
@@ -25,19 +23,17 @@ export const CrawlProvider = ({ children }) => {
     currentUrl: '',
   });
 
-  // Data collections
   const [pages, setPages] = useState([]);
   const [graphData, setGraphData] = useState({ nodes: [], edges: [] });
   const [history, setHistory] = useState([]);
 
-  // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [currentTab, setCurrentTab] = useState('dashboard'); // 'dashboard', 'details', 'history'
+  const [currentTab, setCurrentTab] = useState('dashboard');
 
   const pollingRef = useRef(null);
+  const isPollingBusyRef = useRef(false);
 
-  // Apply theme to HTML root element
   useEffect(() => {
     const root = document.documentElement;
     if (theme === 'dark') {
@@ -52,14 +48,37 @@ export const CrawlProvider = ({ children }) => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Check backend health & connectivity
+  useEffect(() => {
+    const handleServerState = (e) => {
+      const state = e.detail;
+      if (state.status === 'waking') {
+        setBackendStatus('waking');
+        setWakingMeta({
+          attempt: state.attempt || 1,
+          maxRetries: state.maxRetries || 3,
+        });
+      } else if (state.status === 'online') {
+        setBackendStatus('connected');
+      } else if (state.status === 'offline') {
+        setBackendStatus('offline');
+      }
+    };
+
+    window.addEventListener('crawlforge:server-state', handleServerState);
+    return () => {
+      window.removeEventListener('crawlforge:server-state', handleServerState);
+    };
+  }, []);
+
   const checkBackend = useCallback(async () => {
     const isHealthy = await crawlService.checkHealth();
-    setBackendStatus(isHealthy ? 'connected' : 'offline');
+    setBackendStatus((prev) => {
+      if (isHealthy) return 'connected';
+      return prev === 'waking' ? 'waking' : 'offline';
+    });
     return isHealthy;
   }, []);
 
-  // Load history of crawls
   const loadHistory = useCallback(async () => {
     try {
       const crawls = await crawlService.getAllCrawls();
@@ -70,12 +89,10 @@ export const CrawlProvider = ({ children }) => {
         setBackendStatus('connected');
         return;
       }
-      console.warn('Failed to load history, backend might be offline:', err);
-      setBackendStatus('offline');
+      console.warn('History check pending or backend waking:', err.message);
     }
   }, []);
 
-  // Load complete crawl details (crawl metadata, pages, graph)
   const loadCrawlDetails = useCallback(async (crawlId) => {
     if (!crawlId) return;
     setLoading(true);
@@ -113,7 +130,6 @@ export const CrawlProvider = ({ children }) => {
     }
   }, []);
 
-  // Start a new crawl
   const startCrawl = async (url, maxPages) => {
     setLoading(true);
     setError(null);
@@ -145,7 +161,6 @@ export const CrawlProvider = ({ children }) => {
       setGraphData({ nodes: [], edges: [] });
       setBackendStatus('connected');
 
-      // Refresh history list
       loadHistory();
       return crawlId;
     } catch (err) {
@@ -155,7 +170,7 @@ export const CrawlProvider = ({ children }) => {
       } else if (err.response?.data?.error) {
         msg = err.response.data.error;
       } else if (err.code === 'ERR_NETWORK' || !err.response) {
-        msg = 'Cannot connect to backend server. Make sure the Spring Boot backend is running on port 8080.';
+        msg = 'Cannot connect to backend server. Make sure the Spring Boot backend is running.';
         setBackendStatus('offline');
       } else if (err.message) {
         msg = err.message;
@@ -167,7 +182,6 @@ export const CrawlProvider = ({ children }) => {
     }
   };
 
-  // Stop an active crawl
   const stopCrawl = async () => {
     const crawlId = currentCrawl?.id || currentCrawl?.crawlId;
     if (!crawlId) return;
@@ -184,7 +198,6 @@ export const CrawlProvider = ({ children }) => {
     }
   };
 
-  // Live polling for running crawls
   useEffect(() => {
     const isRunning = crawlStatus === 'RUNNING' || crawlStatus === 'STARTED';
     const crawlId = currentCrawl?.id || currentCrawl?.crawlId;
@@ -200,6 +213,9 @@ export const CrawlProvider = ({ children }) => {
     let failureCount = 0;
 
     const poll = async () => {
+      if (isPollingBusyRef.current) return;
+      isPollingBusyRef.current = true;
+
       try {
         const [progress, pagesData, graph] = await Promise.all([
           crawlService.getCrawlProgress(crawlId),
@@ -212,7 +228,6 @@ export const CrawlProvider = ({ children }) => {
         setPages(pagesData || []);
         setGraphData(graph || { nodes: [], edges: [] });
 
-        // Keep currentCrawl synchronized
         setCurrentCrawl((prev) =>
           prev
             ? {
@@ -228,7 +243,6 @@ export const CrawlProvider = ({ children }) => {
           setCrawlStatus(progress.status);
         }
 
-        // If completed or stopped, fetch final record from DB and refresh history
         if (['COMPLETED', 'FAILED', 'STOPPED'].includes(progress.status)) {
           setCrawlStatus(progress.status);
           try {
@@ -237,12 +251,11 @@ export const CrawlProvider = ({ children }) => {
               setCurrentCrawl(finalCrawl);
             }
           } catch {
-            // ignore
           }
           loadHistory();
         }
       } catch (err) {
-        console.warn('Progress polling error:', err);
+        console.warn('Progress polling error:', err.message);
         failureCount += 1;
         if (failureCount >= 5) {
           console.error('Too many polling failures, stopping polling.');
@@ -251,14 +264,14 @@ export const CrawlProvider = ({ children }) => {
             pollingRef.current = null;
           }
         }
+      } finally {
+        isPollingBusyRef.current = false;
       }
     };
 
-    // Initial poll
     poll();
 
-    // Set polling interval every 1.5 seconds
-    pollingRef.current = setInterval(poll, 1500);
+    pollingRef.current = setInterval(poll, 2000);
 
     return () => {
       if (pollingRef.current) {
@@ -268,7 +281,6 @@ export const CrawlProvider = ({ children }) => {
     };
   }, [crawlStatus, currentCrawl?.id, currentCrawl?.crawlId, loadHistory]);
 
-  // Load history & check backend on initial mount
   useEffect(() => {
     checkBackend();
     loadHistory();
@@ -280,6 +292,7 @@ export const CrawlProvider = ({ children }) => {
         theme,
         toggleTheme,
         backendStatus,
+        wakingMeta,
         checkBackend,
         currentCrawl,
         crawlStatus,
@@ -312,4 +325,3 @@ export const useCrawl = () => {
 };
 
 export default CrawlContext;
-

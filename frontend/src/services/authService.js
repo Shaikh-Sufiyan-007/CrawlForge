@@ -1,50 +1,43 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
-
-const authApi = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 10000,
-});
+import apiClient from './apiClient';
 
 export const authService = {
-
-  login: async (username, password) => {
-    const response = await authApi.post('/auth/login', { username, password });
+  login: async (username, password, options = {}) => {
+    const response = await apiClient.post('/auth/login', { username, password }, {
+      signal: options.signal,
+    });
     return response.data;
   },
 
-
-  signup: async (username, email, password) => {
-    const response = await authApi.post('/auth/signup', { username, email, password });
+  signup: async (username, email, password, options = {}) => {
+    const response = await apiClient.post('/auth/signup', { username, email, password }, {
+      signal: options.signal,
+    });
     return response.data;
   },
 
-
-  logout: async (token) => {
+  logout: async (token, options = {}) => {
     try {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      await authApi.post('/auth/logout', {}, { headers });
+      await apiClient.post('/auth/logout', {}, { headers, signal: options.signal });
     } catch (err) {
       console.warn('Backend logout call failed or backend unreachable:', err);
     }
   },
 
-
-  getCurrentUser: async (token) => {
+  getCurrentUser: async (token, options = {}) => {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const response = await authApi.get('/auth/me', { headers });
+    const response = await apiClient.get('/auth/me', { headers, signal: options.signal });
     return response.data;
   },
 
-
-  checkStatus: async (token) => {
+  checkStatus: async (token, options = {}) => {
     try {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const response = await authApi.get('/auth/status', { headers });
+      const response = await apiClient.get('/auth/status', {
+        headers,
+        signal: options.signal,
+        __maxRetries: 2,
+      });
       return response.data;
     } catch {
       return { authenticated: false };

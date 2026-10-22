@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useCrawl } from '../context/CrawlContext';
 import { History as HistoryIcon, ArrowRight, RefreshCw, CheckCircle2, Square, AlertTriangle, Search, Play } from 'lucide-react';
 
 export const History = () => {
   const { history, loadHistory, loadCrawlDetails, setCurrentTab, startCrawl } = useCrawl();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+
+  // Debounce search input to avoid recalculating filters on every single keystroke
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 200);
+    return () => clearTimeout(handler);
+  }, [search]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -23,14 +32,17 @@ export const History = () => {
       await startCrawl(url, maxPages || 30);
       setCurrentTab('details');
     } catch {
-      // Handled in context
     }
   };
 
-  const filteredHistory = history.filter((item) =>
-    (item.startUrl || '').toLowerCase().includes(search.toLowerCase()) ||
-    (item.status || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredHistory = useMemo(() => {
+    const q = debouncedSearch.trim().toLowerCase();
+    if (!q) return history;
+    return history.filter((item) =>
+      (item.startUrl || '').toLowerCase().includes(q) ||
+      (item.status || '').toLowerCase().includes(q)
+    );
+  }, [history, debouncedSearch]);
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -85,7 +97,6 @@ export const History = () => {
 
   return (
     <div className="space-y-5 pb-12">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
@@ -119,7 +130,6 @@ export const History = () => {
         </div>
       </div>
 
-      {/* History Table */}
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse min-w-[640px]">

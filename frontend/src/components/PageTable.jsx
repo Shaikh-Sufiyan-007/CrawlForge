@@ -1,16 +1,24 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, ExternalLink, Download, FileText, Check, Copy, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const PageTable = ({ pages = [] }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [copiedId, setCopiedId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
 
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 200);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
   const filteredPages = useMemo(() => {
     return pages.filter((page) => {
-      const q = searchQuery.toLowerCase();
+      const q = debouncedQuery.toLowerCase();
       const matchesSearch =
         page.url.toLowerCase().includes(q) ||
         (page.title && page.title.toLowerCase().includes(q));
@@ -28,12 +36,11 @@ export const PageTable = ({ pages = [] }) => {
 
       return matchesSearch && matchesStatus;
     });
-  }, [pages, searchQuery, statusFilter]);
+  }, [pages, debouncedQuery, statusFilter]);
 
-  // Reset to page 1 on filter or search change
-  React.useEffect(() => {
+  useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter, pageSize]);
+  }, [debouncedQuery, statusFilter, pageSize]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPages.length / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
@@ -105,10 +112,8 @@ export const PageTable = ({ pages = [] }) => {
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
-      {/* Table Toolbar */}
       <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-2">
-          {/* Search Box */}
           <div className="relative flex-1 min-w-[200px] max-w-md">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
@@ -120,7 +125,6 @@ export const PageTable = ({ pages = [] }) => {
             />
           </div>
 
-          {/* Status Filter */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -134,7 +138,6 @@ export const PageTable = ({ pages = [] }) => {
           </select>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex items-center justify-between sm:justify-end space-x-2 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
           <span className="text-xs text-slate-400 font-medium">
             {filteredPages.length} {filteredPages.length === 1 ? 'page' : 'pages'}
@@ -160,7 +163,6 @@ export const PageTable = ({ pages = [] }) => {
         </div>
       </div>
 
-      {/* Table Area */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs border-collapse min-w-[640px]">
           <thead>
@@ -243,7 +245,6 @@ export const PageTable = ({ pages = [] }) => {
         </table>
       </div>
 
-      {/* Pagination Footer */}
       {filteredPages.length > 0 && (
         <div className="p-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-slate-500 dark:text-slate-400">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">

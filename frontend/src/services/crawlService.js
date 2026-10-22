@@ -1,98 +1,69 @@
-import axios from 'axios';
-
-// Use /api by default which Vite dev server proxies to http://localhost:8080/api,
-// or use environment variable if explicitly configured.
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 15000,
-});
-
-// Request interceptor: attach auth token if available
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('crawlforge_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Response interceptor: dispatch session expiration event on 401
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      window.dispatchEvent(
-        new CustomEvent('crawlforge:session-expired', {
-          detail: error.response?.data?.error || 'Your session has expired. Please log in again.',
-        })
-      );
-    }
-    return Promise.reject(error);
-  }
-);
+import apiClient, { checkHealth as probeHealth } from './apiClient';
 
 export const crawlService = {
-  // Check backend health/connectivity
-  checkHealth: async () => {
+  checkHealth: async (signal) => {
     try {
-      await api.get('/auth/status', { timeout: 3000 });
-      return true;
-    } catch (err) {
-      if (err.response) return true;
+      const result = await probeHealth(signal);
+      return result.online;
+    } catch {
       return false;
     }
   },
 
-  // Start a new crawl job
-  startCrawl: async (url, maxPages) => {
-    const response = await api.post('/crawls', { url, maxPages });
+  startCrawl: async (url, maxPages, options = {}) => {
+    const response = await apiClient.post(
+      '/crawls',
+      { url, maxPages },
+      { signal: options.signal }
+    );
     return response.data;
   },
 
-  // Get previous crawls
-  getAllCrawls: async () => {
-    const response = await api.get('/crawls');
+  getAllCrawls: async (params = {}, options = {}) => {
+    const config = {
+      params,
+      signal: options.signal,
+    };
+    const response = await apiClient.get('/crawls', config);
     return response.data;
   },
 
-  // Get single crawl details
-  getCrawl: async (id) => {
-    const response = await api.get(`/crawls/${id}`);
+  getCrawl: async (id, options = {}) => {
+    const response = await apiClient.get(`/crawls/${id}`, {
+      signal: options.signal,
+    });
     return response.data;
   },
 
-  // Get live crawl progress from Redis
-  getCrawlProgress: async (id) => {
-    const response = await api.get(`/crawls/${id}/progress`);
+  getCrawlProgress: async (id, options = {}) => {
+    const response = await apiClient.get(`/crawls/${id}/progress`, {
+      signal: options.signal,
+    });
     return response.data;
   },
 
-  // Stop an active crawl
-  stopCrawl: async (id) => {
-    const response = await api.post(`/crawls/${id}/stop`);
+  stopCrawl: async (id, options = {}) => {
+    const response = await apiClient.post(`/crawls/${id}/stop`, {}, {
+      signal: options.signal,
+    });
     return response.data;
   },
 
-  // Get crawled pages for a crawl
-  getCrawlPages: async (id) => {
-    const response = await api.get(`/crawls/${id}/pages`);
+  getCrawlPages: async (id, params = {}, options = {}) => {
+    const config = {
+      params,
+      signal: options.signal,
+    };
+    const response = await apiClient.get(`/crawls/${id}/pages`, config);
     return response.data;
   },
 
-  // Get site graph nodes and edges
-  getCrawlGraph: async (id) => {
-    const response = await api.get(`/crawls/${id}/graph`);
+  getCrawlGraph: async (id, options = {}) => {
+    const response = await apiClient.get(`/crawls/${id}/graph`, {
+      signal: options.signal,
+    });
     return response.data;
   },
 };
 
 export default crawlService;
-

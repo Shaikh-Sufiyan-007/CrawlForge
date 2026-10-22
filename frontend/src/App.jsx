@@ -1,17 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CrawlProvider, useCrawl } from './context/CrawlContext';
 import Navbar from './components/Navbar';
-import Login from './components/Login';
-import Signup from './components/Signup';
-import Home from './pages/Home';
-import CrawlDetails from './pages/CrawlDetails';
-import History from './pages/History';
+
+const Home = lazy(() => import('./pages/Home'));
+const CrawlDetails = lazy(() => import('./pages/CrawlDetails'));
+const History = lazy(() => import('./pages/History'));
+const Login = lazy(() => import('./components/Login'));
+const Signup = lazy(() => import('./components/Signup'));
+
+const PageLoader = () => (
+  <div className="flex-1 flex items-center justify-center min-h-[40vh]">
+    <div className="flex flex-col items-center space-y-3">
+      <div className="w-7 h-7 border-2 border-emerald-500/30 border-t-emerald-600 rounded-full animate-spin" />
+      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+        Loading module...
+      </p>
+    </div>
+  </div>
+);
 
 const MainContent = () => {
   const { currentTab } = useCrawl();
   const { isAuthenticated, authLoading } = useAuth();
-  const [authView, setAuthView] = useState('login'); // 'login' or 'signup'
+  const [authView, setAuthView] = useState('login');
 
   if (authLoading) {
     return (
@@ -29,20 +41,24 @@ const MainContent = () => {
   if (!isAuthenticated) {
     return (
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full flex items-center justify-center">
-        {authView === 'login' ? (
-          <Login onSwitchToSignup={() => setAuthView('signup')} />
-        ) : (
-          <Signup onSwitchToLogin={() => setAuthView('login')} />
-        )}
+        <Suspense fallback={<PageLoader />}>
+          {authView === 'login' ? (
+            <Login onSwitchToSignup={() => setAuthView('signup')} />
+          ) : (
+            <Signup onSwitchToLogin={() => setAuthView('login')} />
+          )}
+        </Suspense>
       </main>
     );
   }
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 w-full">
-      {currentTab === 'dashboard' && <Home />}
-      {currentTab === 'details' && <CrawlDetails />}
-      {currentTab === 'history' && <History />}
+      <Suspense fallback={<PageLoader />}>
+        {currentTab === 'dashboard' && <Home />}
+        {currentTab === 'details' && <CrawlDetails />}
+        {currentTab === 'history' && <History />}
+      </Suspense>
     </main>
   );
 };

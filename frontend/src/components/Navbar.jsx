@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export const Navbar = () => {
-  const { theme, toggleTheme, currentTab, setCurrentTab, crawlStatus, currentCrawl, backendStatus } = useCrawl();
+  const { theme, toggleTheme, currentTab, setCurrentTab, crawlStatus, currentCrawl, backendStatus, wakingMeta } = useCrawl();
   const { user, isAuthenticated, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -35,7 +35,6 @@ export const Navbar = () => {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/95">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
-        {/* Brand */}
         <div
           className="flex items-center space-x-2.5 cursor-pointer select-none"
           onClick={() => handleNavClick('dashboard')}
@@ -55,7 +54,6 @@ export const Navbar = () => {
           </div>
         </div>
 
-        {/* Desktop Navigation & Controls (Visible on md+) */}
         {isAuthenticated && (
           <nav className="hidden md:flex items-center space-x-1">
             <button
@@ -100,26 +98,43 @@ export const Navbar = () => {
 
         <div className="flex items-center space-x-1 sm:space-x-2.5">
           <div
-            className={`hidden lg:flex items-center space-x-1.5 text-[11px] px-2.5 py-1 rounded-full border ${backendStatus === 'connected'
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50'
-              : backendStatus === 'offline'
-                ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/50'
-                : 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+            className={`hidden sm:flex items-center space-x-1.5 text-[11px] px-2.5 py-1 rounded-full border ${backendStatus === 'connected'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50'
+                : backendStatus === 'waking'
+                  ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/50'
+                  : backendStatus === 'offline'
+                    ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/50'
+                    : 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
               }`}
-            title={backendStatus === 'connected' ? 'Connected to Spring Boot API' : 'Backend is not reachable'}
+            title={
+              backendStatus === 'connected'
+                ? 'Connected to Spring Boot API'
+                : backendStatus === 'waking'
+                  ? 'Backend is cold-starting, retrying connection...'
+                  : 'Backend is currently unreachable'
+            }
           >
             <span
               className={`w-2 h-2 rounded-full ${backendStatus === 'connected'
-                ? 'bg-emerald-500'
-                : backendStatus === 'offline'
-                  ? 'bg-rose-500'
-                  : 'bg-amber-400 animate-pulse'
+                  ? 'bg-emerald-500'
+                  : backendStatus === 'waking'
+                    ? 'bg-amber-400 animate-ping'
+                    : backendStatus === 'offline'
+                      ? 'bg-rose-500'
+                      : 'bg-amber-400 animate-pulse'
                 }`}
             />
-            <span>{backendStatus === 'connected' ? 'API Online' : backendStatus === 'offline' ? 'API Offline' : 'Checking...'}</span>
+            <span>
+              {backendStatus === 'connected'
+                ? 'API Online'
+                : backendStatus === 'waking'
+                  ? `Waking Server (${wakingMeta?.attempt || 1}/${wakingMeta?.maxRetries || 3})...`
+                  : backendStatus === 'offline'
+                    ? 'API Offline'
+                    : 'Checking...'}
+            </span>
           </div>
 
-          {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
             aria-label="Toggle Theme"
@@ -132,7 +147,6 @@ export const Navbar = () => {
             )}
           </button>
 
-          {/* User Profile & Logout (Desktop) */}
           {isAuthenticated && (
             <div className="hidden sm:flex items-center space-x-2 pl-1 border-l border-slate-200 dark:border-slate-800">
               <div className="flex items-center space-x-1.5 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
@@ -155,7 +169,6 @@ export const Navbar = () => {
             </div>
           )}
 
-          {/* Mobile Menu Hamburger Button */}
           {isAuthenticated && (
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -168,7 +181,6 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
       {isAuthenticated && mobileMenuOpen && (
         <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-3 pb-4 space-y-2 shadow-lg animate-in slide-in-from-top-2 duration-150">
           <nav className="flex flex-col space-y-1">
@@ -213,7 +225,6 @@ export const Navbar = () => {
             </button>
           </nav>
 
-          {/* User profile & Logout in Mobile Menu */}
           <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold text-xs">

@@ -5,7 +5,7 @@ import CrawlProgress from '../components/CrawlProgress';
 import { ArrowRight, Clock, RefreshCw, AlertCircle } from 'lucide-react';
 
 export const Home = () => {
-  const { currentCrawl, history, loadCrawlDetails, setCurrentTab, backendStatus, startCrawl } = useCrawl();
+  const { currentCrawl, history, loadCrawlDetails, setCurrentTab, backendStatus, wakingMeta, startCrawl } = useCrawl();
 
   const handleInspect = (crawlId) => {
     loadCrawlDetails(crawlId);
@@ -17,28 +17,33 @@ export const Home = () => {
       await startCrawl(url, maxPages);
       setCurrentTab('details');
     } catch {
-      // Handled in context
     }
   };
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Backend Offline Warning Banner */}
+      {backendStatus === 'waking' && (
+        <div className="p-3.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/60 flex items-center space-x-3 text-sky-800 dark:text-sky-300 text-xs">
+          <RefreshCw className="w-4 h-4 flex-shrink-0 text-sky-600 dark:text-sky-400 animate-spin" />
+          <div className="flex-1">
+            <span className="font-semibold">Server is waking up, please wait... </span>
+            Connecting to cloud host (attempt {wakingMeta?.attempt || 1} of {wakingMeta?.maxRetries || 3}). Cold start in progress, will automatically connect without manual refreshes.
+          </div>
+        </div>
+      )}
+
       {backendStatus === 'offline' && (
         <div className="p-3.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-start space-x-2.5 text-amber-800 dark:text-amber-300 text-xs">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
           <div className="flex-1 break-words">
             <span className="font-semibold">Backend Server Offline: </span>
-            The Spring Boot backend is not responding at <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 py-0.5 rounded break-all">http://localhost:8080</code>.
-            Please ensure your Spring Boot application is started to crawl websites.
+            The Spring Boot backend is currently unreachable after retrying. Please verify that the cloud container has started.
           </div>
         </div>
       )}
 
-      {/* Crawl Initiation Form */}
       <CrawlForm />
 
-      {/* Active Crawl Progress */}
       {currentCrawl && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -57,7 +62,6 @@ export const Home = () => {
         </div>
       )}
 
-      {/* Recent History */}
       {history && history.length > 0 && (
         <div className="bg-white dark:bg-slate-900 rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-xs">
           <div className="flex items-center justify-between mb-3">
@@ -95,13 +99,12 @@ export const Home = () => {
 
                 <div className="flex items-center space-x-2 self-start sm:self-auto pl-6 sm:pl-0 flex-shrink-0">
                   <span
-                    className={`text-[10px] font-medium px-2 py-0.5 rounded font-mono ${
-                      item.status === 'COMPLETED'
+                    className={`text-[10px] font-medium px-2 py-0.5 rounded font-mono ${item.status === 'COMPLETED'
                         ? 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
                         : item.status === 'RUNNING'
-                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
-                        : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                    }`}
+                          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                          : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                      }`}
                   >
                     {item.status}
                   </span>
