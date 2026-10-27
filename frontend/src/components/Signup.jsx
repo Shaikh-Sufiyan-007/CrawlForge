@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Compass, Lock, User, Mail, Eye, EyeOff, UserPlus, AlertCircle } from 'lucide-react';
 
-export const Signup = ({ onSwitchToLogin }) => {
+export const Signup = ({ onSwitchToLogin, onBackToLanding }) => {
   const { signup, authError, clearAuthError } = useAuth();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -64,9 +64,23 @@ export const Signup = ({ onSwitchToLogin }) => {
   return (
     <div className="min-h-[calc(100vh-12rem)] flex items-center justify-center py-8 px-4 sm:px-6">
       <div className="w-full max-w-md">
-        {/* Brand Card Header */}
+        {onBackToLanding && (
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={onBackToLanding}
+              className="inline-flex items-center space-x-1.5 text-xs font-mono text-emerald-600 dark:text-[#39FF14] hover:underline focus:outline-none"
+            >
+              <span>← Back to overview</span>
+            </button>
+          </div>
+        )}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-500/20 mb-3">
+          <div
+            className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-500/20 mb-3 ${onBackToLanding ? 'cursor-pointer hover:scale-105 transition-transform' : ''
+              }`}
+            onClick={onBackToLanding}
+          >
             <Compass className="w-6 h-6" />
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -77,7 +91,6 @@ export const Signup = ({ onSwitchToLogin }) => {
           </p>
         </div>
 
-        {/* Signup Box */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-lg shadow-slate-200/50 dark:shadow-none">
           {displayError && (
             <div className="mb-5 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-start space-x-2 text-rose-700 dark:text-rose-400 text-sm">
@@ -100,7 +113,6 @@ export const Signup = ({ onSwitchToLogin }) => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Username field */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Username
@@ -122,7 +134,6 @@ export const Signup = ({ onSwitchToLogin }) => {
               </div>
             </div>
 
-            {/* Email field */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Email Address
@@ -143,7 +154,6 @@ export const Signup = ({ onSwitchToLogin }) => {
               </div>
             </div>
 
-            {/* Password field */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Password
@@ -172,7 +182,6 @@ export const Signup = ({ onSwitchToLogin }) => {
               </div>
             </div>
 
-            {/* Confirm Password field */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Confirm Password
@@ -193,7 +202,6 @@ export const Signup = ({ onSwitchToLogin }) => {
               </div>
             </div>
 
-            {/* Submit button */}
             <button
               type="submit"
               disabled={submitting}
@@ -213,7 +221,6 @@ export const Signup = ({ onSwitchToLogin }) => {
             </button>
           </form>
 
-          {/* Switch to Login */}
           <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
             <div className="text-center text-sm text-slate-500 dark:text-slate-400">
               Already have an account?{' '}

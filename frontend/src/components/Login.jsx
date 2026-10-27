@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Compass, Lock, User, Eye, EyeOff, LogIn, AlertCircle, Sparkles } from 'lucide-react';
 
-export const Login = ({ onSwitchToSignup }) => {
+export const Login = ({ onSwitchToSignup, onBackToLanding }) => {
   const { login, authError, clearAuthError } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -47,9 +47,23 @@ export const Login = ({ onSwitchToSignup }) => {
   return (
     <div className="min-h-[calc(100vh-12rem)] flex items-center justify-center py-8 px-4 sm:px-6">
       <div className="w-full max-w-md">
-        {/* Brand Card Header */}
+        {onBackToLanding && (
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={onBackToLanding}
+              className="inline-flex items-center space-x-1.5 text-xs font-mono text-emerald-600 dark:text-[#39FF14] hover:underline focus:outline-none"
+            >
+              <span>← Back to overview</span>
+            </button>
+          </div>
+        )}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-500/20 mb-3">
+          <div
+            className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-500/20 mb-3 ${onBackToLanding ? 'cursor-pointer hover:scale-105 transition-transform' : ''
+              }`}
+            onClick={onBackToLanding}
+          >
             <Compass className="w-6 h-6" />
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -60,7 +74,6 @@ export const Login = ({ onSwitchToSignup }) => {
           </p>
         </div>
 
-        {/* Login Box */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-lg shadow-slate-200/50 dark:shadow-none">
           {displayError && (
             <div className="mb-5 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-start space-x-2 text-rose-700 dark:text-rose-400 text-sm">
@@ -83,7 +96,6 @@ export const Login = ({ onSwitchToSignup }) => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Username / Email field */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Username or Email
@@ -105,7 +117,6 @@ export const Login = ({ onSwitchToSignup }) => {
               </div>
             </div>
 
-            {/* Password field */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Password
@@ -134,7 +145,6 @@ export const Login = ({ onSwitchToSignup }) => {
               </div>
             </div>
 
-            {/* Submit button */}
             <button
               type="submit"
               disabled={submitting}
@@ -156,7 +166,6 @@ export const Login = ({ onSwitchToSignup }) => {
 
 
 
-          {/* Switch to Signup */}
           {onSwitchToSignup && (
             <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
               <div className="text-center text-sm text-slate-500 dark:text-slate-400">
