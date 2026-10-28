@@ -202,6 +202,23 @@ export const ThreeScene = ({
       rings.push({ mesh: ringMesh, spec });
     });
 
+    function makeCircleTexture() {
+      const size = 64;
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+      g.addColorStop(0, 'rgba(255,255,255,1)');
+      g.addColorStop(0.7, 'rgba(255,255,255,1)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, size, size);
+
+      return new THREE.CanvasTexture(canvas);
+    }
+    const circleTex = makeCircleTexture();
+
     const outerPartCount = 380;
     const outerPartPos = new Float32Array(outerPartCount * 3);
     const outerPartScales = new Float32Array(outerPartCount);
@@ -223,9 +240,11 @@ export const ThreeScene = ({
 
     const outerPartMat = new THREE.PointsMaterial({
       color: 0x8cff68,
-      size: 0.07,
+      size: 0.15,
+      map: circleTex,
+      alphaTest: 0.01,
       transparent: true,
-      opacity: 0.7,
+      opacity: 1,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
@@ -364,16 +383,21 @@ export const ThreeScene = ({
       innerDustPos[i * 3 + 1] = (Math.random() - 0.5) * 6;
       innerDustPos[i * 3 + 2] = -Math.random() * 26; // spans along Z corridor
     }
+
     const innerDustGeo = new THREE.BufferGeometry();
     innerDustGeo.setAttribute('position', new THREE.BufferAttribute(innerDustPos, 3));
+
     const innerDustMat = new THREE.PointsMaterial({
       color: 0x39ff14,
-      size: 0.05,
+      size: 0.08,
+      map: makeCircleTexture(),
+      alphaTest: 0.01,
       transparent: true,
       opacity: 0.45,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
+
     const innerDustPoints = new THREE.Points(innerDustGeo, innerDustMat);
     interiorGroup.add(innerDustPoints);
 
